@@ -46,6 +46,15 @@ var app = connect()
 	.use(connect.static('static'))
 	.use(function(req, res){
 		  res.writeHead(200, {'Content-Type': 'text/html'});
+		  
+		  var bodyItems = [];
+		  bodyItems.push({cls: 'siteTitle', controlValue: config.siteTitle});
+		  bodyItems.push({cls: 'siteSubTitle', controlValue: config.siteSubTitle});
+		  for(var i = 0, l = posts.length; i < l; i++){
+			  bodyItems.push({cls: 'itemTitle', controlValue: posts[i].title});
+			  bodyItems.push({cls: 'itemBody', controlValue: posts[i].body});
+		  }
+		  
 		  var page = {
 			  tag: 'html',
 			  isRootControl: true,
@@ -53,10 +62,8 @@ var app = connect()
 			      {tag: 'head', items: [{tag: 'title', controlValue: config.siteTitle}]},
 			      {
 			    	  tag: 'body', 
-			    	  items: [
-		    	          {cls: 'siteTitle', controlValue: config.siteTitle},
-		    	          {cls: 'siteSubTitle', controlValue: config.siteSubTitle}
-		    	  ]}
+			    	  items: bodyItems
+			      }
 			  ]
 		  };
 		  res.end( new control(page).render() );
