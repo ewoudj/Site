@@ -1,39 +1,95 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>Editor</title>
+<!-- <!DOCTYPE html> -->
+<!-- <html> -->
+<!-- 	<head> -->
+<!-- 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> -->
+<!-- 		<title>Editor</title> -->
 	
-		<!-- jQuery and jQuery UI -->
+<!-- 		<script src="script/elRTE/js/jquery-1.6.1.min.js" type="text/javascript" charset="utf-8"></script> -->
+<!-- 		<script src="script/elRTE/js/jquery-ui-1.8.13.custom.min.js" type="text/javascript" charset="utf-8"></script> -->
+<!-- 		<link rel="stylesheet" href="script/elRTE/css/smoothness/jquery-ui-1.8.13.custom.css" type="text/css" media="screen" charset="utf-8"> -->
+	
+<!-- 		<script src="script/elRTE/js/elrte.min.js" type="text/javascript" charset="utf-8"></script> -->
+<!-- 		<link rel="stylesheet" href="script/elRTE/css/elrte.min.css" type="text/css" media="screen" charset="utf-8"> -->
+	
+<!-- 		<script type="text/javascript" charset="utf-8"> -->
+<!-- 			$().ready(function() { -->
+<!-- 				var opts = { -->
+<!-- 					cssClass : 'el-rte', -->
+<!-- 					height   : document.body.clientHeight, -->
+<!-- 					toolbar  : 'maxi', -->
+<!-- 					cssfiles : ['css/elrte-inner.css'] -->
+<!-- 				} -->
+<!-- 				$('#editor').elrte(opts); -->
+<!-- 			}) -->
+<!-- 		</script> -->
+	
+<!-- 		<style type="text/css" media="screen"> -->
+<!-- 			body {  -->
+<!-- 				padding:0px; -->
+<!-- 				margin: 0px; -->
+<!-- 			} -->
+<!-- 		</style> -->
+	
+<!-- 	</head> -->
+<!-- 	<body> -->
+<!-- 		<div id="editor"></div> -->
+<!-- 	</body> -->
+<!-- </html> -->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Editor</title>
+		<link rel="stylesheet" href="script/elRTE/css/smoothness/jquery-ui-1.8.13.custom.css" type="text/css" media="screen" charset="utf-8" /> 
+		<link rel="stylesheet" href="script/elRTE/css/elrte.min.css" type="text/css" media="screen" charset="utf-8" />
 		<script src="script/elRTE/js/jquery-1.6.1.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="script/elRTE/js/jquery-ui-1.8.13.custom.min.js" type="text/javascript" charset="utf-8"></script>
-		<link rel="stylesheet" href="script/elRTE/css/smoothness/jquery-ui-1.8.13.custom.css" type="text/css" media="screen" charset="utf-8">
-	
-		<!-- elRTE -->
 		<script src="script/elRTE/js/elrte.min.js" type="text/javascript" charset="utf-8"></script>
-		<link rel="stylesheet" href="script/elRTE/css/elrte.min.css" type="text/css" media="screen" charset="utf-8">
-	
+		<script src="script/elRTE/js/i18n/elrte.en.js" type="text/javascript" charset="utf-8"></script>
+		<style>
+			body{
+				margin: 0px
+			}
+		</style>
 		<script type="text/javascript" charset="utf-8">
 			$().ready(function() {
 				var opts = {
+					absoluteURLs: false,
 					cssClass : 'el-rte',
-					height   : document.body.clientHeight,
+					lang     : 'en',
+					height   : 420,
 					toolbar  : 'maxi',
-					cssfiles : ['css/elrte-inner.css']
+					cssfiles : ['script/elRTE/css/elrte-inner.css'],
+					fmOpen : function(callback) {
+						$('<div id="myelfinder" />').elfinder({
+							//url : 'http://elrte.org/connector',
+							lang : 'en',
+							//dialog : { width : 900, modal : true, title : 'elFinder - file manager for web' },
+							closeOnEditorCallback : true,
+							editorCallback : callback
+						})
+					}
 				}
 				$('#editor').elrte(opts);
-			})
+			});
+			$(window).resize(function(evt){
+				$('.el-rte.ui-resizable').height(2000);
+			});
 		</script>
-	
-		<style type="text/css" media="screen">
-			body { 
-				padding:0px;
-				margin: 0px;
-			}
-		</style>
-	
 	</head>
-	<body>
-		<div id="editor"></div>
-	</body>
+<body>
+	<div id="wrapper">
+		<div class="demo">
+			<form method="post" action="http://elrte.org/release/shared/post.php">
+				<div id="editor">
+<h1>Title of your document</h1>
+Body text of your document
+				</div>
+			</form>
+		</div>
+	</div>
+</body>
 </html>
+
