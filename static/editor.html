@@ -1,43 +1,4 @@
-<!-- <!DOCTYPE html> -->
-<!-- <html> -->
-<!-- 	<head> -->
-<!-- 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> -->
-<!-- 		<title>Editor</title> -->
-	
-<!-- 		<script src="script/elRTE/js/jquery-1.6.1.min.js" type="text/javascript" charset="utf-8"></script> -->
-<!-- 		<script src="script/elRTE/js/jquery-ui-1.8.13.custom.min.js" type="text/javascript" charset="utf-8"></script> -->
-<!-- 		<link rel="stylesheet" href="script/elRTE/css/smoothness/jquery-ui-1.8.13.custom.css" type="text/css" media="screen" charset="utf-8"> -->
-	
-<!-- 		<script src="script/elRTE/js/elrte.min.js" type="text/javascript" charset="utf-8"></script> -->
-<!-- 		<link rel="stylesheet" href="script/elRTE/css/elrte.min.css" type="text/css" media="screen" charset="utf-8"> -->
-	
-<!-- 		<script type="text/javascript" charset="utf-8"> -->
-<!-- 			$().ready(function() { -->
-<!-- 				var opts = { -->
-<!-- 					cssClass : 'el-rte', -->
-<!-- 					height   : document.body.clientHeight, -->
-<!-- 					toolbar  : 'maxi', -->
-<!-- 					cssfiles : ['css/elrte-inner.css'] -->
-<!-- 				} -->
-<!-- 				$('#editor').elrte(opts); -->
-<!-- 			}) -->
-<!-- 		</script> -->
-	
-<!-- 		<style type="text/css" media="screen"> -->
-<!-- 			body {  -->
-<!-- 				padding:0px; -->
-<!-- 				margin: 0px; -->
-<!-- 			} -->
-<!-- 		</style> -->
-	
-<!-- 	</head> -->
-<!-- 	<body> -->
-<!-- 		<div id="editor"></div> -->
-<!-- 	</body> -->
-<!-- </html> -->
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -52,43 +13,147 @@
 			body{
 				margin: 0px
 			}
+			label, input { 
+				display:block; 
+			}
+			input, select { 
+				margin-bottom:12px; 
+				width:100%; 
+				padding: .4em; 
+			}
+			select {
+				height: 300px;
+			}
+			fieldset { 
+				padding:0; 
+				border:0; 
+				margin-top:10px; 
+			}
 		</style>
 		<script type="text/javascript" charset="utf-8">
+			var defaultTitle = 'Untitled';
+			var currentHeight = 0;
+			var currentPost = {
+				title: defaultTitle,
+				datetime: new Date(),
+				id: ((new Date()).getTime()) + '-' + Math.floor(Math.random() * ( Math.pow(2, 53) )),
+				content: ''
+			}
+			updateTitle();
 			$().ready(function() {
+				// Replace the save method so we get to update our business object
+				elRTE.prototype.save = function(){
+					var nodes = getTextNodesIn(this.doc.body, false);
+					if( nodes.length > 0 ){
+						currentPost.title = nodes[0].nodeValue;
+						currentPost.summary = nodes[1].nodeValue;
+						currentPost.filename = currentPost.title.replace(/[\W]/g, '_');
+						currentPost.content = this.doc.body.innerHTML;
+						currentPost.lastupdate = new Date();
+						$.getJSON('persist.json', currentPost, function(data){
+							updateTitle();
+						});
+					}
+					else {
+						alert('Cannot save invalid post: title and body are required.');
+					}
+				};
+				// Create a file open dialog
+				var dialog = $( "#opendialog-form" ).dialog({
+					autoOpen: false,
+					height: 440,
+					width: 450,
+					modal: true,
+					buttons: {
+						Delete: function() {
+							$( this ).dialog( "close" );
+						},
+						Open: function() {
+							$( this ).dialog( "close" );
+							$.getJSON('/post/' + $("#posts").val() + '.json', function(data){
+								currentPost = data;
+								$('#editor').elrte('val', currentPost.content);
+								$('#editor').elrte('updateSource');
+								updateTitle();
+							});
+						},
+						Cancel: function() {
+							$( this ).dialog( "close" );
+						}
+					}
+				});
+				// Create the editor
 				var opts = {
 					absoluteURLs: false,
 					cssClass : 'el-rte',
 					lang     : 'en',
-					height   : 420,
+					height   : 600,
 					toolbar  : 'maxi',
 					cssfiles : ['script/elRTE/css/elrte-inner.css'],
-					fmOpen : function(callback) {
-						$('<div id="myelfinder" />').elfinder({
-							//url : 'http://elrte.org/connector',
-							lang : 'en',
-							//dialog : { width : 900, modal : true, title : 'elFinder - file manager for web' },
-							closeOnEditorCallback : true,
-							editorCallback : callback
-						})
-					}
+			        fmOpen       : function(callback) {
+			        	// Get an updated file list
+			        	$.getJSON('filelist.json',function(data){
+			        		var optionList = '';
+			        		for(var i= 0, l = data.length; i < l; i++){
+			        			var post = data[i];
+			        			if(post && post.id && post.title){
+			        				optionList = optionList + '<option value="' + post.id + '">' + post.title + '</option>';
+			        			}
+			        		}
+			        		// Remove the current items from the select control
+			        		$('#posts').children()
+			        			.remove().end()
+			        			.append(optionList);
+			        		// Add the new items
+			        		$( "#opendialog-form" ).dialog( "open" );
+			        	});
+			        }
 				}
 				$('#editor').elrte(opts);
+				// Make sure the eßditor fills the browser
+				fillBrowser();
 			});
-			$(window).resize(function(evt){
-				$('.el-rte.ui-resizable').height(2000);
-			});
+			$(window).resize(fillBrowser);
+			function fillBrowser(){
+				var workzoneHeight = $('.workzone').height();
+				var totalHeight = $('.el-rte.ui-resizable').height();
+				var totalToolbarHeight = totalHeight - workzoneHeight;
+				var newHeight = innerHeight - totalToolbarHeight;
+				$('.workzone').height(newHeight);
+			};
+			function getTextNodesIn(node, includeWhitespaceNodes) {
+			    var textNodes = [], whitespace = /^\s*$/;
+			    function getTextNodes(node) {
+			        if (node.nodeType == 3) {
+			            if (includeWhitespaceNodes || !whitespace.test(node.nodeValue)) {
+			                textNodes.push(node);
+			            }
+			        } else {
+			            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+			                getTextNodes(node.childNodes[i]);
+			            }
+			        }
+			    }
+			    getTextNodes(node);
+			    return textNodes;
+			}
+			function updateTitle(){
+				document.title = 'Editor - ' + currentPost.title;
+			}
 		</script>
 	</head>
 <body>
-	<div id="wrapper">
-		<div class="demo">
-			<form method="post" action="http://elrte.org/release/shared/post.php">
-				<div id="editor">
+	<div id="opendialog-form" title="Open">
+		<form>
+			<fieldset>
+				<label for="posts">Posts</label>
+				<select multiple="multiple" name="posts" id="posts" class="select ui-widget-content ui-corner-all" ></select>
+			</fieldset>
+		</form>
+	</div>				
+	<div id="editor">
 <h1>Title of your document</h1>
-Body text of your document
-				</div>
-			</form>
-		</div>
+<div>Body text of your document</div>
 	</div>
 </body>
 </html>

@@ -30,43 +30,120 @@ if(!config){
 var dataFolder = __dirname + '/data';
 var postDataFolder = dataFolder + '/post';
 var posts = [];
+var postsById = {};
+var postsByFilename = {};
+var fileList = [];
+var fileListJson;
+
 try{
 	var filenames = fs.readdirSync(postDataFolder);
 	for(var i = 0, l = filenames.length; i < l; i++){
 		var filename = postDataFolder + '/' + filenames[i];
 		var postJson = fs.readFileSync( filename );
-		posts.push(JSON.parse( postJson ));
+		var post = JSON.parse( postJson );
+		posts.push(post);
+		postsById[post.id] = post;
+		postsByFilename[post.filename] = post;	
+		fileList.push({
+			title: post.title,
+			id: post.id
+		});
 	}
+	fileListJson = JSON.stringify(fileList);
 }
 catch(dataReadException){
 	console.log('Failed to read data, because: ' + dataReadException);
 }
 
+function returnPage(res, bodyItems){
+	res.writeHead(200, {'Content-Type': 'text/html'});
+	bodyItems.unshift({tag: 'br', voidElement: true, attributes: [{cls: 'header-spacer'}]});
+	bodyItems.unshift({tag: 'h3', controlValue: config.siteSubTitle});
+	bodyItems.unshift({tag: 'h1', controlValue: config.siteTitle});
+	var page = {
+		tag: 'html',
+		isRootControl: true,
+		items : [
+	         {tag: 'head', items: [
+                 {tag: 'title', controlValue: config.siteTitle},
+                 {
+     				tag: 'link',
+    				voidElement: true,
+    				attributes: {
+    					rel: 'stylesheet',
+    					href: '/style/style.css'
+				}}
+             ]},
+	         {
+	        	 tag: 'body', 
+	        	 items: bodyItems
+	         }
+		]
+	};
+	res.end( new control(page).render() );
+}
+
 var app = connect()
 	.use(connect.static('static'))
+	.use(connect.query())
 	.use(function(req, res){
-		  res.writeHead(200, {'Content-Type': 'text/html'});
-		  
-		  var bodyItems = [];
-		  bodyItems.push({cls: 'siteTitle', controlValue: config.siteTitle});
-		  bodyItems.push({cls: 'siteSubTitle', controlValue: config.siteSubTitle});
-		  for(var i = 0, l = posts.length; i < l; i++){
-			  bodyItems.push({cls: 'itemTitle', controlValue: posts[i].title});
-			  bodyItems.push({cls: 'itemBody', controlValue: posts[i].body});
-		  }
-		  
-		  var page = {
-			  tag: 'html',
-			  isRootControl: true,
-			  items : [
-			      {tag: 'head', items: [{tag: 'title', controlValue: config.siteTitle}]},
-			      {
-			    	  tag: 'body', 
-			    	  items: bodyItems
-			      }
-			  ]
-		  };
-		  res.end( new control(page).render() );
+		if(req.originalUrl === '/filelist.json'){
+			res.setHeader('Content-type', 'application/json');
+			res.write(fileListJson);
+			res.end();
+		}
+		else if(req.originalUrl.indexOf('/persist.json') === 0 && req.query){
+			fs.writeFile(dataFolder + '/post/' + req.query.id + '.json', JSON.stringify(req.query), function (err) {
+				res.setHeader('Content-type', 'application/json');
+				if(err){
+					res.write(JSON.stringify({succes: false, error: err}));
+				}
+				else{
+					res.write(JSON.stringify({succes: true}));
+				}
+				res.end();
+			});
+		}
+		else if(req.originalUrl.indexOf('/post/') === 0){
+			var filePart = req.originalUrl.replace('/post/', '');
+			var extension = '.html';
+			var lastDot = filePart.lastIndexOf('.');
+			if(lastDot > -1){
+				extension = filePart.substr(lastDot);
+				filePart = filePart.replace(extension, '');
+			}
+			var requestedObject = postsById[filePart] || postsByFilename[filePart];
+			if(requestedObject){
+				if(extension === '.json'){
+					res.setHeader('Content-type', 'application/json');
+					res.write( JSON.stringify(requestedObject) );
+				}
+				else{
+					var bodyItems = [requestedObject.content];
+					returnPage(res, bodyItems);
+				}
+			}
+			res.end();
+		}
+		else if(req.query && req.query.json && req.query.filename){
+			res.setHeader('Content-disposition', 'attachment; filename=' + req.query.filename);
+			res.setHeader('Content-type', 'application/json');
+			res.write(req.query.json);
+			res.end();
+		}
+		else {
+			var bodyItems = [];
+			for(var i = 0, l = posts.length; i < l; i++){
+				bodyItems.push({tag: 'h2', controlValue: posts[i].title});
+				bodyItems.push({controlValue: posts[i].summary});
+				bodyItems.push({
+					tag: 'a',
+					attributes: {href: '/post/' + posts[i].filename + '.html'},
+					controlValue: 'Read more'
+				});
+			}
+			returnPage(res, bodyItems);
+		}
 	})
 	.listen(config.port);
 console.log('Server running at http://127.0.0.1:' + config.port + '/');
