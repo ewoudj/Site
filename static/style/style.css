@@ -1,6 +1,6 @@
 body {
-  padding: 50px;
   font: 14px/1.6 "Helvetica Neue", Helvetica, sans-serif;
+  text-align: center;
 }
 
 h1 {
@@ -18,13 +18,29 @@ h3 {
   margin: 0px 0px 0px 0px;
 }
 
+div {
+	padding-bottom: 12px;
+}
+
 a {
   color: #000;
   font-weight: bold;
 }
 
-.header-spacer {
-  margin: 30px;	
+.title {
+	margin-top: 30px;
+}
+
+.main-container{
+	width: 400px;
+	display: inline-block;
+	text-align: left;
+	padding: 0px 50px 50px 50px;
+}
+
+.twitter-share-button, #fb-root {
+	display: inline-block;
+	vertical-align: text-bottom;
 }
 
 pre {

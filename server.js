@@ -51,15 +51,33 @@ try{
 	}
 	fileListJson = JSON.stringify(fileList);
 }
-catch(dataReadException){
-	console.log('Failed to read data, because: ' + dataReadException);
+catch(exc){
+	console.log('Failed to read data, because: ' + exc);
 }
+
+var snippetsFolder = __dirname + '/snippets';
+var snippets = {};
+try{
+	var filenames = fs.readdirSync(snippetsFolder);
+	for(var i = 0, l = filenames.length; i < l; i++){
+		var filename = snippetsFolder + '/' + filenames[i];
+		snippets[filenames[i]] = fs.readFileSync( filename ).toString();
+	}
+}
+catch(exc){
+	console.log('Failed to read snippets, because: ' + exc);
+}
+
+
 
 function returnPage(res, bodyItems){
 	res.writeHead(200, {'Content-Type': 'text/html'});
-	bodyItems.unshift({tag: 'br', voidElement: true, attributes: [{cls: 'header-spacer'}]});
-	bodyItems.unshift({tag: 'h3', controlValue: config.siteSubTitle});
-	bodyItems.unshift({tag: 'h1', controlValue: config.siteTitle});
+	bodyItems.unshift({
+		tag: 'h1', 
+		controlValue: config.siteTitle,
+		attributes: {cls: 'title'}
+	});
+	bodyItems.unshift(snippets.twitterFollow);
 	var page = {
 		tag: 'html',
 		isRootControl: true,
@@ -75,8 +93,11 @@ function returnPage(res, bodyItems){
 				}}
              ]},
 	         {
-	        	 tag: 'body', 
-	        	 items: bodyItems
+	        	 tag: 'body',
+	        	 items: [{
+	        		 attributes:{cls:'main-container'},
+	        		 items: bodyItems
+	        	 }]
 	         }
 		]
 	};
@@ -120,6 +141,9 @@ var app = connect()
 				}
 				else{
 					var bodyItems = [requestedObject.content];
+					bodyItems.push(snippets.facebook);
+					bodyItems.push(snippets.twitterTweet);
+					bodyItems.push(snippets.disqus);
 					returnPage(res, bodyItems);
 				}
 			}
