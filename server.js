@@ -123,7 +123,7 @@ function returnPage(res, bodyItems){
 
 
 var app = connect()
-	.use(connect.static('static'))
+	.use(connect.static('static/'))
 	.use(connect.query())
 	.use(function(req, res, next){
 		req.ipAddress = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
