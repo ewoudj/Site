@@ -1,16 +1,22 @@
 var fs = require('fs');
 var connect = require('connect');
 var control = require('./lib/control').control;
+var merge = require('./lib/control').utils.merge;
 
-// Reference to the configuration
-var config = null;
+var defaultConfig, config, editorConfig, configFilename, editorConfigFilename;  
+
+// Create the default configuration
+defaultConfig = {
+	siteTitle: "Site Title",
+	port: "8003"
+};
 // Definition of the configuration file name
-var configFileName = __dirname + '/configuration.json';
+configFilename = __dirname + '/configuration.json';
 // Try to read the file
 try{
 	// Because this file needs to be read before other
 	// code can start it is OK that it blocks
-	config = JSON.parse( fs.readFileSync(configFileName) );
+	config = JSON.parse( fs.readFileSync(configFilename) );
 }
 catch(configLoadingException){
 	// If for whatever reason the configuration could not be read:
@@ -18,13 +24,25 @@ catch(configLoadingException){
 	console.log('Failed to load configuration.json, because: ' + configLoadingException);
 	console.log('Reverting to default settings.');
 }
-if(!config){
-	// Apparently a configuration file could not be loaded, reverting to the default settings
-	config = {
-		siteTitle: "Site Title",
-		siteSubTitle: "Site subtitle",
-		port: "8003"
-	};
+if(config){
+	config = merge(defaultConfig, config);
+}
+else{
+	config = defaultConfig;
+}
+// Try to read the editor config file
+editorConfigFilename = __dirname + '/editorConfiguration.json';
+try{
+	editorConfig = JSON.parse( fs.readFileSync(editorConfigFilename) );
+	if( editorConfig ){
+		merge(config, editorConfig);
+	}
+}
+catch(configLoadingException){
+	// Does not matter
+}
+if( config.enableEditor ){
+	console.log('WARNING: editor enabled, this is HIGHLY INSECURE, make sure this application is not accessible from the internet.');
 }
 
 var dataFolder = __dirname + '/data';
@@ -68,8 +86,6 @@ catch(exc){
 	console.log('Failed to read snippets, because: ' + exc);
 }
 
-
-
 function returnPage(res, bodyItems){
 	res.writeHead(200, {'Content-Type': 'text/html'});
 	bodyItems.unshift({
@@ -104,16 +120,25 @@ function returnPage(res, bodyItems){
 	res.end( new control(page).render() );
 }
 
+
+
 var app = connect()
 	.use(connect.static('static'))
 	.use(connect.query())
-	.use(function(req, res){
-		if(req.originalUrl === '/filelist.json'){
+	.use(function(req, res, next){
+		req.ipAddress = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
+		req.clientIsLocal = (req.ipAddress == '127.0.0.1');
+		next();
+	})
+	.use(function(req, res, next){
+		if(req.clientIsLocal && req.originalUrl === '/filelist.json'){
+			// Returns list of all post JSON files
 			res.setHeader('Content-type', 'application/json');
 			res.write(fileListJson);
 			res.end();
 		}
-		else if(req.originalUrl.indexOf('/persist.json') === 0 && req.query){
+		else if(req.clientIsLocal && req.originalUrl.indexOf('/persist.json') === 0 && req.query){
+			// Writes a post to the file system
 			fs.writeFile(dataFolder + '/post/' + req.query.id + '.json', JSON.stringify(req.query), function (err) {
 				res.setHeader('Content-type', 'application/json');
 				if(err){
@@ -126,6 +151,7 @@ var app = connect()
 			});
 		}
 		else if(req.originalUrl.indexOf('/post/') === 0){
+			// Returns an individual post
 			var filePart = req.originalUrl.replace('/post/', '');
 			var extension = '.html';
 			var lastDot = filePart.lastIndexOf('.');
@@ -136,10 +162,12 @@ var app = connect()
 			var requestedObject = postsById[filePart] || postsByFilename[filePart];
 			if(requestedObject){
 				if(extension === '.json'){
+					// Return format is JSON
 					res.setHeader('Content-type', 'application/json');
 					res.write( JSON.stringify(requestedObject) );
 				}
 				else{
+					// Default return format is HTML 
 					var bodyItems = [requestedObject.content];
 					bodyItems.push(snippets.facebook);
 					bodyItems.push(snippets.twitterTweet);
@@ -149,13 +177,8 @@ var app = connect()
 			}
 			res.end();
 		}
-		else if(req.query && req.query.json && req.query.filename){
-			res.setHeader('Content-disposition', 'attachment; filename=' + req.query.filename);
-			res.setHeader('Content-type', 'application/json');
-			res.write(req.query.json);
-			res.end();
-		}
 		else {
+			// Return the home page (a list of all posts)
 			var bodyItems = [];
 			for(var i = 0, l = posts.length; i < l; i++){
 				bodyItems.push({tag: 'h2', controlValue: posts[i].title});
@@ -168,6 +191,7 @@ var app = connect()
 			}
 			returnPage(res, bodyItems);
 		}
+		next();
 	})
 	.listen(config.port);
 console.log('Server running at http://127.0.0.1:' + config.port + '/');

@@ -1,4 +1,5 @@
 node_modules
+editorConfiguration.json
 .project
 .settings
 .DS_Store

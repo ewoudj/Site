@@ -1,5 +1,4 @@
 {
 	"siteTitle": "Ex Arbor",
-	"siteSubTitle": "Software evolution",
-	"port": "8003"
+	"port": "80"
 }
