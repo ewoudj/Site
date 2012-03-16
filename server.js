@@ -131,13 +131,13 @@ var app = connect()
 		next();
 	})
 	.use(function(req, res, next){
-		if(req.clientIsLocal && req.originalUrl === '/filelist.json'){
+		if(config.enableEditor && req.clientIsLocal && req.originalUrl === '/filelist.json'){
 			// Returns list of all post JSON files
 			res.setHeader('Content-type', 'application/json');
 			res.write(fileListJson);
 			res.end();
 		}
-		else if(req.clientIsLocal && req.originalUrl.indexOf('/persist.json') === 0 && req.query){
+		else if(config.enableEditor && req.clientIsLocal && req.originalUrl.indexOf('/persist.json') === 0 && req.query){
 			// Writes a post to the file system
 			fs.writeFile(dataFolder + '/post/' + req.query.id + '.json', JSON.stringify(req.query), function (err) {
 				res.setHeader('Content-type', 'application/json');
@@ -191,7 +191,7 @@ var app = connect()
 			}
 			returnPage(res, bodyItems);
 		}
-		next();
+		//next();
 	})
 	.listen(config.port);
 console.log('Server running at http://127.0.0.1:' + config.port + '/');
