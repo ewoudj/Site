@@ -89,9 +89,9 @@ catch(exc){
 function returnPage(res, bodyItems){
 	res.writeHead(200, {'Content-Type': 'text/html'});
 	bodyItems.unshift({
-		tag: 'h1', 
+		tag: 'a', 
 		controlValue: config.siteTitle,
-		attributes: {cls: 'title'}
+		attributes: {cls: 'title', href: '/'}
 	});
 	bodyItems.unshift(snippets.twitterFollow);
 	var page = {
@@ -100,6 +100,7 @@ function returnPage(res, bodyItems){
 		items : [
 	         {tag: 'head', items: [
                  {tag: 'title', controlValue: config.siteTitle},
+                 {tag: 'meta', attributes: { name: 'viewport', content: 'width = 420, user-scalable = no'}},
                  {
      				tag: 'link',
     				voidElement: true,
@@ -123,7 +124,7 @@ function returnPage(res, bodyItems){
 
 
 var app = connect()
-	.use(connect.static('static/'))
+	.use(connect.static(__dirname + '/static'))
 	.use(connect.query())
 	.use(function(req, res, next){
 		req.ipAddress = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
