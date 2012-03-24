@@ -3,6 +3,10 @@ body {
   text-align: center;
 }
 
+.el-rte-structure {
+	text-align: left;
+}
+
 h1 {
   margin: 0;
   font-size: 60px;
@@ -23,8 +27,21 @@ div {
 }
 
 a {
-  color: #000;
-  font-weight: bold;
+	color: #000;
+}
+
+.pseudo-link{
+	text-decoration: underline;
+}
+
+.top-bar{
+	text-align: right;
+	padding: 0px;
+	margin: 0px;
+}
+
+.by-line{
+	margin-bottom: 30px;
 }
 
 .title {
@@ -39,13 +56,21 @@ a {
 }
 
 .main-container{
+	margin: 50px 0px 50px 0px;
 	width: 320px;
 	display: inline-block;
 	text-align: left;
 	padding: 0px 50px 50px 50px;
+	background-color: #FFF;
+	z-index: 1;
 }
 
-.twitter-follow-button, .twitter-share-button, #fb-root {
+.twitter-follow-button{
+	margin: 10px -40px 10px 10px;
+	float: right;
+}
+
+.twitter-share-button, #fb-root {
 	display: inline-block;
 	vertical-align: text-bottom;
 }
@@ -85,6 +110,10 @@ pre {
 
 #menu li a:hover {
   padding-right: 15px;
+}
+
+.list-item {
+	text-decoration: none;
 }
 
 code .comment { color: #a2a2a2 }

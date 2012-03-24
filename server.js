@@ -53,6 +53,7 @@ var postsByFilename = {};
 var fileList = [];
 var fileListJson;
 
+// Load all the posts
 try{
 	var filenames = fs.readdirSync(postDataFolder);
 	for(var i = 0, l = filenames.length; i < l; i++){
@@ -67,6 +68,11 @@ try{
 			id: post.id
 		});
 	}
+	posts.sort(function(postA, postB){
+		postA.datetime = postA.datetime || 0;
+		postB.datetime = postB.datetime || 0;
+		return (postA.datetime - postB.datetime);
+	});
 	fileListJson = JSON.stringify(fileList);
 }
 catch(exc){
@@ -91,7 +97,8 @@ function returnPage(res, bodyItems){
 	bodyItems.unshift({
 		tag: 'a', 
 		controlValue: config.siteTitle,
-		attributes: {cls: 'title', href: '/'}
+		cls: 'title', 
+		href: '/'
 	});
 	bodyItems.unshift(snippets.twitterFollow);
 	var page = {
@@ -100,7 +107,7 @@ function returnPage(res, bodyItems){
 		items : [
 	         {tag: 'head', items: [
                  {tag: 'title', controlValue: config.siteTitle},
-                 {tag: 'meta', attributes: { name: 'viewport', content: 'width = 420, user-scalable = no'}},
+                 {tag: 'meta', attributes: { name: 'viewport', content: 'width = 460, user-scalable = yes'}},
                  {
      				tag: 'link',
     				voidElement: true,
@@ -112,9 +119,12 @@ function returnPage(res, bodyItems){
 	         {
 	        	 tag: 'body',
 	        	 items: [{
-	        		 attributes:{cls:'main-container'},
-	        		 items: bodyItems
-	        	 }]
+	        		 	cls: 'top-bar',
+	        		 	items: [ /*snippets.twitterFollow*/ ]
+	        	 	}, {
+		        		cls:'main-container',
+		        		items: bodyItems
+	        	 }, snippets.backgroundart]
 	         }
 		]
 	};
@@ -141,7 +151,6 @@ var app = connect()
 		else if(config.enableEditor && req.clientIsLocal && req.originalUrl.indexOf('/persist.json') === 0 && req.query){
 			// Writes a post to the file system
 			fs.writeFile(dataFolder + '/post/' + req.query.id + '.json', JSON.stringify(req.query), function (err) {
-				res.setHeader('Content-type', 'application/json');
 				if(err){
 					res.write(JSON.stringify({succes: false, error: err}));
 				}
@@ -170,6 +179,14 @@ var app = connect()
 				else{
 					// Default return format is HTML 
 					var bodyItems = [requestedObject.content];
+					var when = requestedObject.datetime || '';
+					if(when){
+						when = ', ' + renderDate( new Date( parseInt(when) ));
+					}
+					bodyItems.push({
+						cls: 'by-line',
+						controlValue: 'By ewoudj' + when
+					});
 					bodyItems.push(snippets.facebook);
 					bodyItems.push(snippets.twitterTweet);
 					bodyItems.push(snippets.disqus);
@@ -182,13 +199,16 @@ var app = connect()
 			// Return the home page (a list of all posts)
 			var bodyItems = [];
 			for(var i = 0, l = posts.length; i < l; i++){
-				bodyItems.push({tag: 'h2', controlValue: posts[i].title});
-				bodyItems.push({controlValue: posts[i].summary});
-				bodyItems.push({
+				var item = {
 					tag: 'a',
-					attributes: {href: '/post/' + posts[i].filename + '.html'},
-					controlValue: 'Read more'
-				});
+					cls: 'list-item',
+					items: [],
+					attributes: {href: '/post/' + posts[i].filename + '.html'}
+				};
+				item.items.push({tag: 'h2', controlValue: posts[i].title});
+				item.items.push({controlValue: posts[i].summary});
+				item.items.push({controlValue: 'Read more', cls: 'pseudo-link'});
+				bodyItems.push(item);
 			}
 			returnPage(res, bodyItems);
 		}
@@ -196,3 +216,35 @@ var app = connect()
 	})
 	.listen(config.port);
 console.log('Server running at http://127.0.0.1:' + config.port + '/');
+
+var month_names = new Array ( );
+month_names[month_names.length] = "January";
+month_names[month_names.length] = "February";
+month_names[month_names.length] = "March";
+month_names[month_names.length] = "April";
+month_names[month_names.length] = "May";
+month_names[month_names.length] = "June";
+month_names[month_names.length] = "July";
+month_names[month_names.length] = "August";
+month_names[month_names.length] = "September";
+month_names[month_names.length] = "October";
+month_names[month_names.length] = "November";
+month_names[month_names.length] = "December";
+
+var day_names = new Array ( );
+day_names[day_names.length] = "Sunday";
+day_names[day_names.length] = "Monday";
+day_names[day_names.length] = "Tuesday";
+day_names[day_names.length] = "Wednesday";
+day_names[day_names.length] = "Thursday";
+day_names[day_names.length] = "Friday";
+day_names[day_names.length] = "Saturday";
+
+function renderDate(datetime){
+	return ( day_names[datetime.getDay()] ) + ", " + ( month_names[datetime.getMonth()] ) + ( " " + datetime.getDate() ) + ( " " + datetime.getFullYear() );
+}
+
+
+
+
+

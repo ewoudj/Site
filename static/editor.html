@@ -29,10 +29,18 @@
 				border:0; 
 				margin-top:10px; 
 			}
+			.el-rte .toolbar ul li.youtube { 
+				background-position: -410px -2px; 
+			}
+			.el-rte .toolbar ul li.staticimages { 
+				background-position: -410px -2px; 
+			}
 		</style>
 		<script type="text/javascript" charset="utf-8">
+			
 			var defaultTitle = 'Untitled';
 			var currentHeight = 0;
+			
 			var currentPost = {
 				title: defaultTitle,
 				datetime: new Date(),
@@ -40,16 +48,118 @@
 				content: ''
 			}
 			updateTitle();
+			
 			$().ready(function() {
+				(function($) {
+				    elRTE.prototype.ui.prototype.buttons.staticimages = function(rte, name) {
+				        this.constructor.prototype.constructor.call(this, rte, name);
+
+				        this.image_url = $('<input type="text" />px').attr('name', 'image_url').attr('size', '40');
+				        this.image_w = $('<input type="text" />').attr('name', 'image_w').attr('size', '12').val("320");
+				        var self = this;
+
+				        this.command = function() {
+				            var opts, d;
+
+				            opts = {
+				                rtl : rte.rtl,
+				                submit : function(e, d) { e.stopPropagation(); e.preventDefault(); d.close(); self.set($("input[name=image_url]").val(), $("input[name=image_w]").val(), 'Alt text here'); },
+				                dialog : {
+				                    width : 460,
+				                    title : this.rte.i18n('Insert Image')
+				                }
+				            }
+
+				            this.rte.selection.saveIERange();        
+				            d = new elDialogForm(opts);
+				            d.append([this.rte.i18n('Image URL'),this.image_url], null, true);
+				            d.append([this.rte.i18n('Width'),$('<span />').append(this.image_w)], null, true);  
+				            d.open();
+				            this.rte.ui.update(true);
+				        }
+
+				        this.update = function() {
+				            this.domElem.removeClass('disabled active');
+				        }
+
+				        this.set = function(url, w, alt) {
+							var imagePart = '<img src="' + url + '" alt="' + alt + '" width="' + w + '" />';
+				            this.rte.history.add();
+				            this.rte.selection.insertHtml(imagePart);
+				        }
+				    }
+				})(jQuery);
+				elRTE.prototype.options.buttons.staticimages = 'Insert Image';
+				
+
+				(function($) {
+				    elRTE.prototype.ui.prototype.buttons.youtube = function(rte, name) {
+				        this.constructor.prototype.constructor.call(this, rte, name);
+
+				        this.youtube_url = $('<input type="text" />px').attr('name', 'youtube_url').attr('size', '40');
+				        this.youtube_w = $('<input type="text" />').attr('name', 'youtube_w').attr('size', '12').val("320");
+				        this.youtube_h = $('<input type="text" />').attr('name', 'youtube_h').attr('size', '12').val("247");
+				        var self = this;
+
+				        this.command = function() {
+				            var opts, d;
+
+				            opts = {
+				                rtl : rte.rtl,
+				                submit : function(e, d) { e.stopPropagation(); e.preventDefault(); d.close(); self.set($("input[name=youtube_url]").val(), $("input[name=youtube_w]").val(),$("input[name=youtube_h]").val()); },
+				                dialog : {
+				                    width : 460,
+				                    title : this.rte.i18n('Insert YouTube video')
+				                }
+				            }
+
+				            this.rte.selection.saveIERange();        
+				            d = new elDialogForm(opts);
+				            d.append([this.rte.i18n('Youtube URL'),this.youtube_url], null, true)         
+				            d.append([this.rte.i18n('Width'),$('<span />').append(this.youtube_w).append(' px')], null, true)         
+				            d.append([this.rte.i18n('Height'),$('<span />').append(this.youtube_h).append(' px')], null, true)  
+				            d.open();
+				            this.rte.ui.update(true);
+				        }
+
+				        this.update = function() {
+				            this.domElem.removeClass('disabled active');
+				        }
+
+				        this.set = function(url, w, h) {
+				        	// Expects a url like http://youtu.be/OR142DEuWnI
+							var transformedUrl = url.replace('http://youtu.be/', '<iframe width="' + w + '" height="' + h + '" src="http://www.youtube.com/embed/');
+				            var toinsert = transformedUrl + '?rel=0&wmode=transparent" frameborder="0" allowfullscreen></iframe>';
+				            this.rte.history.add();
+				            this.rte.selection.insertHtml(toinsert);
+				        }
+				    }
+				})(jQuery);
+				elRTE.prototype.options.buttons.youtube = 'Insert Youtube video';
+				
 				// Replace the save method so we get to update our business object
 				elRTE.prototype.save = function(){
+					// We will pull out all the text nodes.
+					// First text node will be used as the title,
+					// the second text node will be the summary.
+					// The editor introduces undesired nbsp elements,
+					// causing the text nodes to be cut short. First we 
+					// will remove ALL nbsp elements
+					var source =  $('#editor').elrte('val');
+					source = source.replace(/&nbsp;/g, ' ')
+					$('#editor').elrte('val', source);
+					$('#editor').elrte('updateSource');
+					// Now the text nodes should be ok. Fetch them...
 					var nodes = getTextNodesIn(this.doc.body, false);
 					if( nodes.length > 0 ){
 						currentPost.title = nodes[0].nodeValue;
 						currentPost.summary = nodes[1].nodeValue;
 						currentPost.filename = currentPost.title.replace(/[\W]/g, '_');
-						currentPost.content = this.doc.body.innerHTML;
-						currentPost.lastupdate = new Date();
+						currentPost.content = source;
+						currentPost.lastupdate = new Date().getTime();
+						if(!currentPost.datetime){
+							currentPost.datetime = currentPost.lastupdate;
+						}
 						$.getJSON('persist.json', currentPost, function(data){
 							updateTitle();
 						});
@@ -82,14 +192,16 @@
 						}
 					}
 				});
+ 				elRTE.prototype.options.panels.webVideoPanel = ['youtube','staticimages'];
+				elRTE.prototype.options.toolbars.webVideo = ['save', 'copypaste', 'undoredo', 'elfinder', 'style', 'alignment', 'direction', 'colors', 'format', 'indent', 'lists', 'links', 'elements', 'tables', 'webVideoPanel'];
 				// Create the editor
 				var opts = {
 					absoluteURLs: false,
 					cssClass : 'el-rte',
 					lang     : 'en',
 					height   : 600,
-					toolbar  : 'maxi',
-					cssfiles : ['script/elRTE/css/elrte-inner.css'],
+					toolbar  : 'webVideo',
+					cssfiles : [ 'script/elRTE/css/elrte-inner.css', 'style/style.css'],
 			        fmOpen       : function(callback) {
 			        	// Get an updated file list
 			        	$.getJSON('filelist.json',function(data){
@@ -120,6 +232,8 @@
 				var totalToolbarHeight = totalHeight - workzoneHeight;
 				var newHeight = innerHeight - totalToolbarHeight;
 				$('.workzone').height(newHeight);
+				$('.workzone').find(":nth-child(0)").height(newHeight);
+				$('.workzone').find(":nth-child(1)").height(newHeight);
 			};
 			function getTextNodesIn(node, includeWhitespaceNodes) {
 			    var textNodes = [], whitespace = /^\s*$/;
@@ -152,7 +266,7 @@
 		</form>
 	</div>				
 	<div id="editor">
-<h1>Title of your document</h1>
+<h2>Title of your document</h2>
 <div>Body text of your document</div>
 	</div>
 </body>
