@@ -136,6 +136,10 @@ function returnPage(res, bodyItems){
 
 
 var app = connect()
+//	.use(function(req, res, next){
+//		console.log(req.originalUrl);
+//		next();
+//	})
 	.use(connect.static(__dirname + '/static'))
 	.use(connect.query())
 	.use(function(req, res, next){
