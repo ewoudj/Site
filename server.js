@@ -52,7 +52,9 @@ var postsById = {};
 var postsByFilename = {};
 var fileList = [];
 var fileListJson;
-
+//12  1332285883175
+//Ufo 1332027667218
+//10  1332023183649
 // Load all the posts
 try{
 	var filenames = fs.readdirSync(postDataFolder);
@@ -69,9 +71,11 @@ try{
 		});
 	}
 	posts.sort(function(postA, postB){
-		postA.datetime = postA.datetime || 0;
-		postB.datetime = postB.datetime || 0;
-		return (postA.datetime - postB.datetime);
+		postA.datetime = parseInt(postA.datetime || 0);
+		postB.datetime = parseInt(postB.datetime || 0);
+		console.log('a: ' + postA.datetime);
+		console.log('b: ' + postB.datetime);
+		return (postB.datetime - postA.datetime);
 	});
 	fileListJson = JSON.stringify(fileList);
 }
@@ -100,7 +104,7 @@ function returnPage(res, bodyItems){
 		cls: 'title', 
 		href: '/'
 	});
-	bodyItems.unshift(snippets.twitterFollow);
+	//bodyItems.unshift(snippets.twitterFollow);
 	var page = {
 		tag: 'html',
 		isRootControl: true,
@@ -120,11 +124,13 @@ function returnPage(res, bodyItems){
 	        	 tag: 'body',
 	        	 items: [{
 	        		 	cls: 'top-bar',
-	        		 	items: [ /*snippets.twitterFollow*/ ]
+	        		 	items: [ snippets.twitterFollow ]
 	        	 	}, {
 		        		cls:'main-container',
 		        		items: bodyItems
-	        	 }, snippets.backgroundart]
+	        	 	}//, 
+	        	 	//snippets.backgroundart
+        	 	]
 	         }
 		]
 	};

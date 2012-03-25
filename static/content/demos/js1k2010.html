@@ -1,0 +1,13 @@
+<html><head>
+		<title>JS1k, 1k demo submission [431]</title>
+		<meta charset="utf-8">
+	</head>
+	<body marginwidth="0" marginheight="0" style="background-image: initial; background-attachment: initial; background-origin: initial; background-clip: initial; background-color: rgb(0, 0, 0); margin-top: -168.5px; margin-right: 0px; margin-bottom: 0px; margin-left: 222.5px; background-position: initial initial; background-repeat: initial initial; ">
+		<canvas id="c" width="800" height="600"></canvas>
+		<script> document.body.clientWidth; // webkit fix: http://qfox.nl/weblog/218
+			// start of submission //
+Z="px Courier";var a=800,c=600,e=0,f=0,g=document,h=g.body,j=g.getElementById("c"),k=h.style,l=j.getContext("2d"),m=h.innerHTML,n=m.length,o=Math,p=o.PI,q=o.sin,r=o.random,s=window,t=[],u="beginPath";k.background="#000";j.width=a;j.height=c;l.strokeStyle="#0f0";l.fillStyle="#000";function v(){k.margin=(s.innerHeight-c)/2+"px 0px 0px "+(s.innerWidth-a)/2+"px"}s.onresize=v;for(i=0;i<c;){t.push({x:r()*400-200,y:r()*200-100});i++}function w(b,d,y,z,A,B,x){l[u]();for(i=0;i<b;){l.moveTo(0,d+q((e+i*y)/A*p)*x);l.lineTo(a,d+q((e+i*z)/B*p)*x);i++}l.stroke()}v();setInterval(function(){l.fillRect(0,0,a,c);w(255,220,0.2,0.1,40,50,111);w(45,470,0.4,0.2,50,30,75);l.font=300+Z;l.fillText("JS1K",q(e/50*p)*c,300);l.font=20+Z;for(i=0;i<n;){var b=a-f*5+i*11;l.fillText(m.charAt(i),b,480+q((e+i)/50*p)*30);if(i==n-1&&b<0)f=0;i++}f++;var d;l[u]();for(i=0;i<c;){t[i].x+=t[i].x/40;t[i].y+=t[i].y/40;b=t[i].x+400;d=t[i].y+200;l.moveTo(b,d);l.lineTo(b+1,d);if(b<0||b>a||d<0||d>c)t[i]={x:r()*400-200,y:r()*200-100};i++}l.stroke();e++},38);
+			// end of submission //
+		</script>
+	
+</body></html>
