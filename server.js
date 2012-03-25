@@ -52,9 +52,7 @@ var postsById = {};
 var postsByFilename = {};
 var fileList = [];
 var fileListJson;
-//12  1332285883175
-//Ufo 1332027667218
-//10  1332023183649
+
 // Load all the posts
 try{
 	var filenames = fs.readdirSync(postDataFolder);
@@ -73,8 +71,6 @@ try{
 	posts.sort(function(postA, postB){
 		postA.datetime = parseInt(postA.datetime || 0);
 		postB.datetime = parseInt(postB.datetime || 0);
-		console.log('a: ' + postA.datetime);
-		console.log('b: ' + postB.datetime);
 		return (postB.datetime - postA.datetime);
 	});
 	fileListJson = JSON.stringify(fileList);
