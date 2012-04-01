@@ -7,7 +7,7 @@ var defaultConfig, config, editorConfig, configFilename, editorConfigFilename;
 
 // Create the default configuration
 defaultConfig = {
-	siteTitle: "Site Title",
+	siteTitle: "Title of this site",
 	port: "8003"
 };
 // Definition of the configuration file name
