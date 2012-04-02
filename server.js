@@ -1,5 +1,6 @@
 var fs = require('fs');
 var connect = require('connect');
+var cachemanifest = require('./lib/cachemanifest');
 var control = require('./lib/control').control;
 var merge = require('./lib/control').utils.merge;
 
@@ -147,6 +148,7 @@ var app = connect()
 		req.clientIsLocal = (req.ipAddress == '127.0.0.1');
 		next();
 	})
+	.use(cachemanifest(__dirname + '/static'))
 	.use(function(req, res, next){
 		if(config.enableEditor && req.clientIsLocal && req.originalUrl === '/filelist.json'){
 			// Returns list of all post JSON files
