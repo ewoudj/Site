@@ -1,0 +1,42 @@
+<!doctype html> 
+<html manifest="cache.manifest">
+	<head>
+		<script type="text/javascript">
+			function start(){
+				window.addEventListener( 'touchstart', function() {
+					var outputNode = document.getElementById('output');
+					try{
+						var audioNode = document.getElementById('audionode');
+						audioNode.load(); 
+						audioNode.play();
+						outputNode.innerHTML = "OK";
+					}
+					catch(exception){
+						outputNode.innerHTML = JSON.stringify(exception);
+					}
+				}, false);
+			}
+			
+			function clicka(){
+				var audioNode = document.getElementById('audionode');
+				audioNode.src = "explosion.mp3";
+				audioNode.load(); audioNode.play();
+			}
+			
+			function clickb(){
+				var audioNode = document.getElementById('audionode');
+				audioNode.src = "laser.mp3";
+				audioNode.load(); audioNode.play();
+			}
+			
+			
+		</script>
+	</head>
+	<body onload="start();">
+		<audio id="audionode" src="appear.mp3"></audio>
+		<h1>Audio Experiment for iOS</h1>
+		<h2 id="a" onclick="clicka()">Touch to play sound A</h2>
+		<h2 id="b" onclick="clickb()">Touch to play sound B</h2>
+		<div id="output"></div>
+	</body>
+</html>
