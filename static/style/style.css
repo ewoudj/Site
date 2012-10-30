@@ -46,7 +46,7 @@ a {
 }
 
 .title {
-	margin: 30px 0px 0px 0px;
+	margin: 20px 0px 0px 0px;
   	font-size: 60px;
   	display: block;
   	color: #000;
@@ -59,12 +59,16 @@ a {
 
 .main-container{
 	margin: 50px 0px 50px 0px;
-	width: 320px;
+	width: 290px;
 	display: inline-block;
 	text-align: left;
-	padding: 0px 50px 50px 50px;
+	padding: 0px 10px 10px 10px;
 	background-color: #FFF;
 	z-index: 1;
+}
+
+.main-container img, .main-container iframe{
+    width: 290px;
 }
 
 .twitter-follow-button{

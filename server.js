@@ -108,7 +108,7 @@ function returnPage(res, bodyItems){
 		items : [
 	         {tag: 'head', items: [
                  {tag: 'title', controlValue: config.siteTitle},
-                 {tag: 'meta', attributes: { name: 'viewport', content: 'width = 460, user-scalable = yes'}},
+                 {tag: 'meta', attributes: { name: 'viewport', content: 'width = 320, user-scalable = yes'}},
                  {
      				tag: 'link',
     				voidElement: true,
@@ -119,10 +119,10 @@ function returnPage(res, bodyItems){
              ]},
 	         {
 	        	 tag: 'body',
-	        	 items: [{
+	        	 items: [/*{
 	        		 	cls: 'top-bar',
 	        		 	items: [ snippets.twitterFollow ]
-	        	 	}, {
+	        	 	},*/ {
 		        		cls:'main-container',
 		        		items: bodyItems
 	        	 	}//, 
@@ -191,13 +191,13 @@ var app = connect()
 					if(when){
 						when = ', ' + renderDate( new Date( parseInt(when) ));
 					}
-					bodyItems.push({
-						cls: 'by-line',
-						controlValue: 'By ewoudj' + when
-					});
-					bodyItems.push(snippets.facebook);
-					bodyItems.push(snippets.twitterTweet);
-					bodyItems.push(snippets.disqus);
+//					bodyItems.push({
+//						cls: 'by-line',
+//						controlValue: 'By ewoudj' + when
+//					});
+//					bodyItems.push(snippets.facebook);
+//					bodyItems.push(snippets.twitterTweet);
+//					bodyItems.push(snippets.disqus);
 					returnPage(res, bodyItems);
 				}
 			}
@@ -213,9 +213,9 @@ var app = connect()
 					items: [],
 					attributes: {href: '/post/' + posts[i].filename + '.html'}
 				};
-				item.items.push({tag: 'h2', controlValue: posts[i].title});
+				item.items.push({tag: 'h2', controlValue: posts[i].title + '&nbsp&nbsp&nbsp&gt'});
 				item.items.push({controlValue: posts[i].summary});
-				item.items.push({controlValue: 'Read more', cls: 'pseudo-link'});
+				// item.items.push({controlValue: 'Read more', cls: 'pseudo-link'});
 				bodyItems.push(item);
 			}
 			returnPage(res, bodyItems);
