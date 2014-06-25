@@ -6,14 +6,16 @@ window.art.helpers = {
 
     // Creates a canvas element in the target elements and makes it resize with the target
     createCanvas: function (target) {
-        var canvas = document.createElement('canvas');
-        canvas.style.position = 'absolute';
-        target.appendChild(canvas);
-        target.onresize = function () {
+        var resize = function () {
             canvas.width = target.clientWidth;
             canvas.height = target.clientHeight;
         };
-        target.onresize();
+        var canvas = document.createElement('canvas');
+        canvas.style.position = 'absolute';
+        target.appendChild(canvas);
+        target.onresize = resize;
+        window.addEventListener("resize", resize);
+        resize();
         return canvas;
     },
 
