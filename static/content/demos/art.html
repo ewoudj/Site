@@ -10,6 +10,7 @@
         * {
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
         body, html {
             height: 100%;
@@ -21,6 +22,7 @@
 </head>
 <body>
     <script>
+        document.ontouchmove = function(e){ e.preventDefault(); }
         window.art.gallery.animate(document.body, window.art.neoplasticism);
     </script>
 </body>
