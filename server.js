@@ -145,7 +145,7 @@ var app = connect()
 	.use(connect.query())
 	.use(function(req, res, next){
 		req.ipAddress = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
-		req.clientIsLocal = (req.ipAddress == '127.0.0.1');
+		req.clientIsLocal = (req.ipAddress == '127.0.0.1' || req.ipAddress == '::ffff:127.0.0.1');
 		next();
 	})
 	.use(cachemanifest(__dirname + '/static'))

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Dempsey and Makepeace effect</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			varying vec2 t;
+			varying vec3 pos;
+			void main() {
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_Position = projectionMatrix * mvPosition;
+				pos = vec3(position.x, position.y, position.z);
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			varying vec3 pos;
+			void main() {
+				vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+				vec4 transparent = vec4(1.0, 1.0, 1.0, 0.0);
+				gl_FragColor = mix(white, transparent, pos.z / 400.0);			
+			}
+		</script>
+
+		<script src="three.min.js"></script>
+
+		<script>
+			var camera, scene, renderer, textMesh, frustum;
+
+			var text = "DEMPSEY AND MAKEPEACE",
+				height = 400,
+				size = 70,
+				curveSegments = 4;
+
+			init();
+
+			function init() {
+
+				var container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.context.blendFunc( renderer.context.SRC_ALPHA, renderer.context.ONE);
+				renderer.context.enable( renderer.context.BLEND );
+				renderer.context.disable( renderer.context.DEPTH_TEST );
+				container.appendChild( renderer.domElement );	
+
+				var loader = new THREE.FontLoader();
+				loader.load( 'Renfrew.typeface.json', function ( response ) {
+
+					camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 1500 );
+					camera.position.set( 0, 35, 500 );
+					camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+					frustum = calculateFrustum();
+					scene = new THREE.Scene();
+
+					var shaderMaterial = new THREE.ShaderMaterial( {
+						vertexShader: document.getElementById( 'vertexShader' ).textContent,
+						fragmentShader: document.getElementById( 'fragmentShader' ).textContent, 
+						side: THREE.DoubleSide, 
+						transparent: true
+					} );
+
+					var material = new THREE.MultiMaterial( [
+						new THREE.MeshPhongMaterial({color: 0x0000ff, transparent: true, opacity: 0}),
+						shaderMaterial
+					] );
+
+					var textGeo = new THREE.TextGeometry( text, {
+						font: response,
+						size: size,
+						height: height,
+						curveSegments: curveSegments,
+						material: 0,
+						extrudeMaterial: 1
+					});
+					textGeo.computeBoundingBox();
+					textGeo.computeVertexNormals();
+
+					var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+					textMesh = new THREE.Mesh( textGeo, material );
+					textMesh.position.x = centerOffset;
+					scene.add( textMesh );				
+
+					window.addEventListener( 'resize', onWindowResize, false );
+					animate();
+				} );
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				frustum = calculateFrustum();
+			}
+
+			var delta = -5;
+
+			function animate() {
+				requestAnimationFrame( animate );
+				textMesh.position.x += delta;
+							
+				if(! frustum.intersectsObject( textMesh ) &&  textMesh.position.x < 0){
+					delta = 5;
+				}
+				else if (! frustum.intersectsObject( textMesh ) &&  textMesh.position.x > 0){
+					delta = -5;
+				}
+
+				render();
+			}
+
+			function calculateFrustum(){
+				var result = new THREE.Frustum();
+				var cameraViewProjectionMatrix = new THREE.Matrix4();
+				camera.updateMatrixWorld();
+				camera.matrixWorldInverse.getInverse( camera.matrixWorld );
+				cameraViewProjectionMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+				result.setFromMatrix( cameraViewProjectionMatrix );
+				return result;
+			}
+
+			function render() {
+				renderer.clear();
+				renderer.render( scene, camera );
+			}
+		</script>
+	</body>
+</html>
